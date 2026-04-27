@@ -14,7 +14,7 @@ class UnwrapError(RuntimeError):
 
 
 # -------------------- 成功分支 --------------------
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class Ok(Generic[T, E]):
     value: T
 
@@ -53,7 +53,7 @@ class Ok(Generic[T, E]):
 
 
 # -------------------- 失败分支 --------------------
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class Err(Generic[T, E]):
     error: E
 
