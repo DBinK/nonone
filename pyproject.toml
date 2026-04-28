@@ -1,6 +1,6 @@
 [project]
 name = "nonone"
-version = "0.1.3"
+version = "0.1.4"
 description = "A modern, lightweight Rust-style Result type for Python 3.10+ pattern matching."
 readme = "README.md"
 authors = [
@@ -16,6 +16,11 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Typing :: Typed",
 ]
+
+[project.urls]
+Homepage = "https://github.com/DBinK/nonone"
+Repository = "https://github.com/DBinK/nonone"
+Issues = "https://github.com/DBinK/nonone/issues"
 
 [build-system]
 requires = ["uv_build>=0.9.3,<0.10.0"]
