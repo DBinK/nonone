@@ -6,6 +6,149 @@
 
 ---
 
+### 为什么选择 nonone？告别 None 和嵌套判断的痛苦
+
+在传统的 Python 开发中，我们经常面临以下痛点：
+
+#### 痛点 1：隐式 `None` 导致的运行时错误
+
+**❌ 传统写法 - 危险！**
+```python
+def find_user(user_id: int) -> User | None:
+    # ... 数据库查询逻辑
+    return None if not found else user
+
+user = find_user(123)
+print(user.name)  # 💥 如果 user 是 None，这里会抛出 AttributeError！
+```
+
+**✅ nonone 写法 - 类型安全**
+```python
+from nonone import Result, ok, err
+
+def find_user_safe(user_id: int) -> Result[User, str]:
+    # 必须返回 ok(user) 或 err("错误信息")
+    pass
+
+result = find_user_safe(123)
+# 编译器和 IDE 会强制你处理两种情况，无法忽略错误
+match result:
+    case Ok(user):
+        print(user.name)  # ✅ 安全，user 一定存在
+    case Err(msg):
+        print(f"错误: {msg}")
+```
+
+---
+
+#### 痛点 2：繁琐的嵌套 None 判断
+
+**❌ 传统写法 - 嵌套地狱**
+```python
+user = find_user(123)
+if user is not None:
+    profile = get_profile(user.id)
+    if profile is not None:
+        address = get_address(profile.address_id)
+        if address is not None:
+            print(f"用户地址: {address.street}")
+        else:
+            print("地址不存在")
+    else:
+        print("用户资料不存在")
+else:
+    print("用户不存在")
+```
+
+**✅ nonone 写法 - 扁平化链式调用**
+```python
+from nonone import ok, err, Result
+
+# 定义安全的函数
+def find_user_safe(user_id: int) -> Result[User, str]:
+    pass
+
+def get_profile_safe(user_id: int) -> Result[Profile, str]:
+    pass
+
+def get_address_safe(address_id: int) -> Result[Address, str]:
+    pass
+
+# 使用链式调用，完全避免嵌套
+result = (
+    find_user_safe(123)
+    .and_then(lambda user: get_profile_safe(user.id))
+    .and_then(lambda profile: get_address_safe(profile.address_id))
+    .map(lambda address: f"用户地址: {address.street}")
+)
+
+match result:
+    case Ok(message):
+        print(message)
+    case Err(msg):
+        print(f"处理失败: {msg}")  # 任何一步出错都会到这里
+```
+
+---
+
+#### 痛点 3：异常处理的复杂性与遗漏风险
+
+**❌ 传统写法 - try-except 容易遗漏**
+```python
+try:
+    user = find_user(123)
+    profile = get_profile(user.id)  # 如果 user 是 None，这里也会出错！
+    address = get_address(profile.address_id)
+    print(f"用户地址: {address.street}")
+except (AttributeError, ValueError, DatabaseError) as e:
+    print(f"处理失败: {e}")
+# ⚠️ 问题：可能忘记捕获某些异常，或者异常类型不匹配
+```
+
+**✅ nonone 写法 - 统一错误处理**
+```python
+from nonone import catch, try_catch
+
+# 方式 A: 使用装饰器 - 一键转换现有函数
+@catch
+def dangerous_divide(a: float, b: float) -> float:
+    return a / b  # 可能抛出 ZeroDivisionError
+
+result = dangerous_divide(10, 0)
+# 自动包装为: Err(ZeroDivisionError(...))
+
+# 方式 B: 临时调用 - 无需修改原函数定义
+import requests
+
+def fetch_data(url: str) -> dict:
+    response = requests.get(url)
+    response.raise_for_status()
+    return response.json()
+
+# 直接包装调用，立即获得 Result
+result = try_catch(fetch_data, "https://api.example.com/data")
+
+match result:
+    case Ok(data):
+        print(f"获取成功: {data}")
+    case Err(e):
+        print(f"请求失败: {type(e).__name__}: {e}")
+# ✅ 所有异常都被统一捕获并转换为 Err，不会遗漏
+```
+
+---
+
+### nonone 的核心优势
+
+- ✅ **编译时类型安全**：静态类型检查器能提前发现潜在错误
+- ✅ **强制错误处理**：无法忽略错误情况，必须显式处理
+- ✅ **消除 None 隐患**：再也不用担心 `AttributeError: 'NoneType' object has no attribute...`
+- ✅ **扁平化代码结构**：通过链式调用将多层嵌套变为线性流程
+- ✅ **统一的错误模型**：所有错误都是 `Err`，无需记忆各种异常类型
+- ✅ **无缝迁移**：使用 `@catch` 或 `try_catch` 零成本改造现有代码
+
+---
+
 ### 核心特性
 
 * **现代语法**：完美支持 Python 3.10+ 的 `match-case` 结构化模式匹配。
