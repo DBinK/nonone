@@ -1,12 +1,12 @@
-# nonone
+# NoNone
 
-> 拒绝隐式 `None`，拥抱现代 Python 的 Rust 风格 `Result` 类型。
+> 拒绝隐式 `None`，拥抱现代 Python 的 Rust 风格 [Result](file://c:\IT\nonone\src\nonone\result.py#L94-L94) 类型。
 
-**nonone** 是一个轻量、纯粹且类型安全的 Python 库。它引入了 Rust 语言中著名的 `Result`（`Ok` / `Err`）模式，并专为 **Python 3.10+** 的 `match-case`（结构化模式匹配）语法量身定制。
+**NoNone** 是一个轻量、纯粹且类型安全的 Python 库。它引入了 Rust 语言中著名的 [Result](file://c:\IT\nonone\src\nonone\result.py#L94-L94)（`Ok` / `Err`）模式，并专为 **Python 3.10+** 的 `match-case`（结构化模式匹配）语法量身定制。
 
 ---
 
-### 为什么选择 nonone？告别 None 和嵌套判断的痛苦
+### 为什么选择 NoNone？告别 None 和嵌套判断的痛苦
 
 在传统的 Python 开发中，我们经常面临以下痛点：
 
@@ -22,7 +22,7 @@ user = find_user(123)
 print(user.name)  # 💥 如果 user 是 None，这里会抛出 AttributeError！
 ```
 
-**✅ nonone 写法 - 类型安全**
+**✅ NoNone 写法 - 类型安全**
 ```python
 from nonone import Result, ok, err, Ok, Err
 
@@ -63,7 +63,7 @@ else:
     print("用户不存在")
 ```
 
-**✅ nonone 写法 - 扁平化链式调用**
+**✅ NoNone 写法 - 扁平化链式调用**
 ```python
 from nonone import ok, err, Result
 
@@ -98,7 +98,31 @@ match result:
         print(f"处理失败: {msg}")          # 任何一步出错都会到这里
 ```
 
-💡 **核心思想**：`.and_then()` 用于串联可能失败的操作，`.map()` 用于转换成功的值。详细用法见下方"API 使用指南"。
+
+
+💡 **理解链式调用中的关键方法**：
+
+- **`.and_then(func)`** - 当前一步成功时，执行下一个返回 `Result` 的操作
+  - 如果前一步是 `Err`，则跳过后续所有步骤
+  - 用于串联多个可能失败的操作
+
+- **`.map(func)`** - 对成功的值进行转换（不改变 Result 结构）
+  - 只在 `Ok` 时执行，将 `Ok(value)` 转换为 `Ok(func(value))`
+  - 用于最后的格式化、计算等纯函数操作
+
+**对比理解**：
+```python
+# 假设 get_address_safe 返回 Ok(Address(street="长安街"))
+
+# 使用 .map() 转换结果
+result = get_address_safe(123).map(lambda addr: addr.street)
+# 结果: Ok("长安街")  ← 仍然是 Ok，但内部值从 Address 变成了 str
+
+# 如果不使用 .map()
+result = get_address_safe(123)
+# 结果: Ok(Address(street="长安街"))  ← 内部还是 Address 对象
+```
+
 
 ---
 
@@ -116,7 +140,7 @@ except (AttributeError, ValueError, DatabaseError) as e:
 # ⚠️ 问题：可能忘记捕获某些异常，或者异常类型不匹配
 ```
 
-**✅ nonone 写法 - 统一错误处理**
+**✅ NoNone 写法 - 统一错误处理**
 ```python
 from nonone import catch, try_catch
 
@@ -149,9 +173,9 @@ match result:
 
 ---
 
-### nonone 的核心优势
+### NoNone 的核心优势
 
-- ✅ **编译时类型安全**：基于双泛型 `Result[T, E]` 设计，静态类型检查器能提前发现潜在错误
+- ✅ **编译时类型安全**：基于双泛型 [Result](file://c:\IT\nonone\src\nonone\result.py#L94-L94)[T, E] 设计，静态类型检查器能提前发现潜在错误
 - ✅ **强制错误处理**：无法忽略错误情况，必须显式处理所有分支
 - ✅ **消除 None 隐患**：再也不用担心 `AttributeError: 'NoneType' object has no attribute...`
 - ✅ **扁平化代码结构**：通过 `.map()`、`.and_then()` 等链式调用将多层嵌套变为线性流程
@@ -164,7 +188,7 @@ match result:
 
 ### 安装
 
-使用 `uv`（推荐）或 `pip`：
+使用 `uv`（推荐）或 `pip` 安装 **NoNone**：
 
 ```bash
 uv pip install nonone
@@ -178,7 +202,7 @@ pip install nonone
 
 #### 💡 重要提示：大写 vs 小写
 
-nonone 提供了两套 API，用途不同但很简单：
+NoNone 提供了两套 API，用途不同但很简单：
 
 | 场景 | 使用 | 示例 |
 |------|------|------|
@@ -192,7 +216,7 @@ nonone 提供了两套 API，用途不同但很简单：
 
 ### 完整示例：从安装到运行
 
-让我们通过一个完整的例子来体验 nonone：
+让我们通过一个完整的例子来体验 NoNone：
 
 ```python
 # example.py - 完整的用户地址查询示例
@@ -249,7 +273,7 @@ $ python example.py
 
 ### 进阶用法：强大的 match-case
 
-`nonone` 基于 `dataclass` 构建，可以充分利用 Python 模式匹配的强大功能。
+NoNone 基于 `dataclass` 构建，可以充分利用 Python 模式匹配的强大功能。
 
 #### 🎯 使用 Guard（条件过滤）
 
