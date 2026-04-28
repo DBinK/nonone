@@ -76,18 +76,43 @@ def get_address_safe(address_id: int) -> Result[Address, str]:
 
 # 使用链式调用，完全避免嵌套
 result = (
-    find_user_safe(123)
-    .and_then(lambda user: get_profile_safe(user.id))
-    .and_then(lambda profile: get_address_safe(profile.address_id))
-    .map(lambda address: f"用户地址: {address.street}")
+    find_user_safe(123)                    # 第1步: 查找用户 → Result[User, str]
+    .and_then(get_profile_safe)            # 第2步: 获取资料 → Result[Profile, str]
+    .and_then(get_address_safe)            # 第3步: 获取地址 → Result[Address, str]
+    .map(lambda address: f"用户地址: {address.street}")  # 第4步: 格式化输出 → Result[str, str]
 )
 
 match result:
     case Ok(message):
-        print(message)
+        print(message)                     # 如果所有步骤都成功，打印格式化后的消息
     case Err(msg):
-        print(f"处理失败: {msg}")  # 任何一步出错都会到这里
+        print(f"处理失败: {msg}")          # 任何一步出错都会到这里
 ```
+
+💡 **理解链式调用中的关键方法**：
+
+- **`.and_then(func)`** - 当前一步成功时，执行下一个返回 `Result` 的操作
+  - 如果前一步是 `Err`，则跳过后续所有步骤
+  - 用于串联多个可能失败的操作
+
+- **`.map(func)`** - 对成功的值进行转换（不改变 Result 结构）
+  - 只在 `Ok` 时执行，将 `Ok(value)` 转换为 `Ok(func(value))`
+  - 用于最后的格式化、计算等纯函数操作
+
+**对比理解**：
+```python
+# 假设 get_address_safe 返回 Ok(Address(street="长安街"))
+
+# 使用 .map() 转换结果
+result = get_address_safe(123).map(lambda addr: addr.street)
+# 结果: Ok("长安街")  ← 仍然是 Ok，但内部值从 Address 变成了 str
+
+# 如果不使用 .map()
+result = get_address_safe(123)
+# 结果: Ok(Address(street="长安街"))  ← 内部还是 Address 对象
+```
+
+
 
 ---
 
