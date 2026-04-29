@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Generic, TypeVar, Callable, Any
+from typing import Generic, TypeVar, Callable, Any, TypeAlias
 import functools
 
 T = TypeVar("T")
@@ -47,6 +47,9 @@ class Ok(Generic[T, E]):
 
     def and_then(self, f: Callable[[T], Result[U, E]]) -> Result[U, E]:
         return f(self.value)
+    
+    def try_and_then(self, f: Callable[[T], U]) -> Result[U, Exception]:
+        return try_catch(f, self.value)  # 用于处理不是返回 Result 的函数
 
     def or_else(self, f: Callable[[E], Result[T, F]]) -> Result[T, F]:
         return Ok(self.value)
@@ -86,13 +89,17 @@ class Err(Generic[T, E]):
 
     def and_then(self, f: Callable[[T], Result[U, E]]) -> Result[U, E]:
         return Err(self.error)
+    
+    def try_and_then(self, f: Callable[[T], U]) -> Result[U, Exception | E]:
+        return Err(self.error)
+        # return cast(Any, self)  # 强制将当前实例视为目标返回类型
 
     def or_else(self, f: Callable[[E], Result[T, F]]) -> Result[T, F]:
         return f(self.error)
 
 
 # -------------------- 联合类型别名 --------------------
-Result = Ok[T, E] | Err[T, E]
+Result: TypeAlias = Ok[T, E] | Err[T, E]
 
 
 # -------------------- 小写构造器（Rust 风格） --------------------
