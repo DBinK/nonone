@@ -51,6 +51,11 @@ class Ok(Generic[T, E]):
     def try_and_then(self, f: Callable[[T], U]) -> Result[U, Exception]:
         return try_catch(f, self.value)  # 用于处理不是返回 Result 的函数
 
+    def inspect(self, func: Callable[[T], Any]) -> Ok[T, E]:
+        """对 Ok 值执行副作用函数（如打印），返回自身。类似 Rust 的 inspect()。"""
+        func(self.value)
+        return self
+    
     def or_else(self, f: Callable[[E], Result[T, F]]) -> Result[T, F]:
         return Ok(self.value)
 
@@ -96,7 +101,11 @@ class Err(Generic[T, E]):
 
     def or_else(self, f: Callable[[E], Result[T, F]]) -> Result[T, F]:
         return f(self.error)
-
+    
+    def inspect(self, func: Callable[[E], Any]) -> Err[T, E]:
+        """对 Err 错误执行副作用函数（如打印），返回自身。类似 Rust 的 inspect_err()。"""
+        func(self.error)
+        return self
 
 # -------------------- 联合类型别名 --------------------
 Result: TypeAlias = Ok[T, E] | Err[T, E]
