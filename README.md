@@ -1,4 +1,8 @@
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/56512e74-7232-444f-9e0c-b5d8297b130e" style="width: 80%; height: auto;">
+</p>
+
 <div align="center">
 
 # NoNone
