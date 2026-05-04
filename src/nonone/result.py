@@ -4,10 +4,11 @@ import functools
 from dataclasses import dataclass
 from typing import Any, Callable, Generic, NoReturn, ParamSpec, TypeAlias, TypeVar
 
-T = TypeVar("T")
-E = TypeVar("E")
-U = TypeVar("U")
-F = TypeVar("F")
+
+T = TypeVar("T")    # 成功值类型
+E = TypeVar("E")    # 错误值类型
+U = TypeVar("U")    # 变换后成功值类型
+F = TypeVar("F")    # 变换后错误值类型
 P = ParamSpec("P")  # 用于保留装饰器参数签名
 
 

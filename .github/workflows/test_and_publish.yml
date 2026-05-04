@@ -1,6 +1,7 @@
 name: Test and Publish
 
 on:
+  workflow_dispatch: # 允许手动触发
   push:
     branches:
       - main
@@ -16,23 +17,19 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # 既然我们明确只支持 3.10+，就在所有支持的版本上都跑一遍
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
+      - name: Install uv + Python
+        uses: astral-sh/setup-uv@v7
         with:
+          python-version: ${{ matrix.python-version }}
           enable-cache: true
 
-      - name: Set up Python ${{ matrix.python-version }}
-        run: uv python install ${{ matrix.python-version }}
-
       - name: Run tests
-        # uv 会自动解析 pyproject.toml 中的依赖并在隔离环境中运行 pytest
-        run: uv run pytest tests/
+        run: uv run --frozen pytest tests/
 
   build-n-publish:
     name: Build and publish to PyPI
@@ -40,17 +37,28 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v') # 仅在推送 v 开头的 tag 时才执行发布
     runs-on: ubuntu-latest
     environment:
-      name: pypi 
-      url: https://pypi.org/p/nonone
+      name: pypi
     permissions:
       id-token: write
       contents: read # 检出代码需要的权限
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
+
+      - name: Read package name from pyproject.toml
+        id: read-package
+        run: |
+          PACKAGE_NAME=$(uv run --with toml-cli python -c "
+          import tomllib
+          with open('pyproject.toml', 'rb') as f:
+              data = tomllib.load(f)
+          print(data['project']['name'])
+          ")
+          echo "package-name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "PyPI URL: https://pypi.org/p/$PACKAGE_NAME"
 
       - name: Build distribution
         run: uv build
