@@ -18,7 +18,7 @@ from nonone import (
 class TestOk:
     @pytest.fixture
     def ok_val(self):
-        return Ok[int, str](42)
+        return ok(42)
 
     def test_is_ok(self, ok_val):
         assert ok_val.is_ok() is True
@@ -66,12 +66,12 @@ class TestOk:
         assert res.unwrap() == 42
 
     def test_and_then_ok(self, ok_val):
-        res = ok_val.and_then(lambda x: Ok[str, str]("success"))
+        res = ok_val.and_then(lambda x: ok("success"))
         assert isinstance(res, Ok)
         assert res.unwrap() == "success"
 
     def test_and_then_err(self, ok_val):
-        res = ok_val.and_then(lambda x: Err[str, str]("failed"))
+        res = ok_val.and_then(lambda x: err("failed"))
         assert isinstance(res, Err)
         assert res.unwrap_err() == "failed"
 
@@ -81,7 +81,7 @@ class TestOk:
         def f(e):
             nonlocal called
             called = True
-            return Err[int, str]("recovered")
+            return err("recovered")
         res = ok_val.or_else(f)
         assert called is False
         assert isinstance(res, Ok)
@@ -110,7 +110,7 @@ class TestOk:
 class TestErr:
     @pytest.fixture
     def err_val(self):
-        return Err[int, str]("something went wrong")
+        return err("something went wrong")
 
     def test_is_ok(self, err_val):
         assert err_val.is_ok() is False
@@ -153,14 +153,14 @@ class TestErr:
         def f(x):
             nonlocal called
             called = True
-            return Ok("should not happen")
+            return ok("should not happen")
         res = err_val.and_then(f)
         assert called is False
         assert isinstance(res, Err)
         assert res.unwrap_err() == "something went wrong"
 
     def test_or_else_recovery(self, err_val):
-        res = err_val.or_else(lambda e: Ok[str, str](f"recovered from {e}"))
+        res = err_val.or_else(lambda e: ok(f"recovered from {e}"))
         assert isinstance(res, Ok)
         assert res.unwrap() == "recovered from something went wrong"
 
@@ -315,29 +315,29 @@ class TestEdgeCases:
     def test_chaining_mixed_operations(self):
         # 模拟真实工作流
         def validate(x: int) -> Result[int, str]:
-            return Ok(x) if x > 0 else Err("must be positive")
+            return ok(x) if x > 0 else err("must be positive")
 
         def double(x: int) -> Result[int, str]:
-            return Ok(x * 2)
+            return ok(x * 2)
 
         # 链式: Ok -> and_then -> map -> or_else
         r = ok(5).and_then(validate).map(lambda x: x * 10).or_else(lambda e: err("fallback"))
         assert r.unwrap() == 50
 
-        r2 = ok(-1).and_then(validate).map(lambda x: x * 10).or_else(lambda e: Ok(999))
+        r2 = ok(-1).and_then(validate).map(lambda x: x * 10).or_else(lambda e: ok(999))
         assert r2.unwrap() == 999
 
     def test_expect_on_err_with_custom_message(self):
-        e = Err[float, str]("timeout")
+        e = err("timeout")
         with pytest.raises(UnwrapError, match=r"fatal: 'timeout'"):
             e.expect("fatal")
             
     def test_and_then_type_change(self):
         # Ok[int, str] -> and_then 产生 Result[str, str]
-        r = Ok[int, str](1).and_then(lambda x: Ok[str, str]("hello"))
+        r = ok(1).and_then(lambda x: ok("hello"))
         assert r.unwrap() == "hello"
 
     def test_or_else_type_change(self):
         # Err[int, str] -> or_else 产生 Result[int, list]
-        r = Err[int, str]("fail").or_else(lambda e: Err[int, list]([1,2,3]))
+        r = err("fail").or_else(lambda e: err([1,2,3]))
         assert r.unwrap_err() == [1,2,3]
