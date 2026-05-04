@@ -1,8 +1,8 @@
 # NoNone
 
-> 拒绝隐式 `None`，拥抱现代 Python 的 Rust 风格 [Result](file://c:\IT\nonone\src\nonone\result.py#L94-L94) 类型。
+> 拒绝隐式 `None`，拥抱现代 Python 的 Rust 风格 [Result](https://doc.rust-lang.org/std/result/) 类型。
 
-**NoNone** 是一个轻量、纯粹且类型安全的 Python 库。它引入了 Rust 语言中著名的 [Result](file://c:\IT\nonone\src\nonone\result.py#L94-L94)（`Ok` / `Err`）模式，并专为 **Python 3.10+** 的 `match-case`（结构化模式匹配）语法量身定制。
+**NoNone** 是一个轻量、纯粹且类型安全的 Python 库。它引入了 Rust 语言中著名的 [Result（](https://doc.rust-lang.org/std/result/)`Ok` / `Err`）模式，并专为 **Python 3.10+** 的 `match-case`（结构化模式匹配）语法量身定制。
 
 ---
 
@@ -175,7 +175,7 @@ match result:
 
 ### NoNone 的核心优势
 
-- ✅ **编译时类型安全**：基于双泛型 [Result](file://c:\IT\nonone\src\nonone\result.py#L94-L94)[T, E] 设计，静态类型检查器能提前发现潜在错误
+- ✅ **编译时类型安全**：基于双泛型 Result[T, E] 设计，静态类型检查器能提前发现潜在错误
 - ✅ **强制错误处理**：无法忽略错误情况，必须显式处理所有分支
 - ✅ **消除 None 隐患**：再也不用担心 `AttributeError: 'NoneType' object has no attribute...`
 - ✅ **扁平化代码结构**：通过 `.map()`、`.and_then()` 等链式调用将多层嵌套变为线性流程
